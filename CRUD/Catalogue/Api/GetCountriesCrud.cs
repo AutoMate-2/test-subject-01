@@ -1,137 +1,134 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Diagnostics;
+using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 using to_integrations.HelperMethods;
 
 namespace to_integrations.CRUD.Catalogue.Api
 {
     public class GetCountriesCrud
     {
-        private readonly GetCountriesApi _api = new GetCountriesApi();
-        private JObject? _response;
+        private readonly GetCountriesApi _api;
+        private int _lastStatus;
+        private string _lastBody;
 
-        public int LastStatus { get; private set; }
-        public string LastBody { get; private set; } = "";
+        public int LastStatus => _lastStatus;
+        public string LastBody => _lastBody;
+
+        public GetCountriesCrud()
+        {
+            _api = new GetCountriesApi();
+        }
 
         public async Task CallGetCountriesApi(string token = "")
         {
-            var sw = Stopwatch.StartNew();
-
-            var (status, body) = await _api.GetCountries(token);
-
+            var effectiveToken = string.IsNullOrEmpty(token) ? TokenCache.CachedToken : token;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var result = await _api.GetCountriesAsync(effectiveToken);
             sw.Stop();
             LastResponse.TimeMs = sw.ElapsedMilliseconds;
-
-            LastStatus = status;
-            LastBody = body;
-
-            ParseResponse(body);
-            LogResponse(status, body);
+            _lastStatus = result.Status;
+            _lastBody = result.Body;
         }
-
-        private void ParseResponse(string body)
-        {
-            try
-            {
-                _response = JObject.Parse(body);
-            }
-            catch
-            {
-                _response = null;
-            }
-        }
-
-        private void LogResponse(int status, string body)
-        {
-            System.Console.WriteLine("====== CATALOGUE RESPONSE ======");
-            System.Console.WriteLine($"Status Code: {status}");
-            System.Console.WriteLine("Response Body:");
-
-            try
-            {
-                var pretty = JToken.Parse(body).ToString(Newtonsoft.Json.Formatting.Indented);
-                System.Console.WriteLine(pretty);
-            }
-            catch
-            {
-                System.Console.WriteLine(body);
-            }
-
-            System.Console.WriteLine("================================");
-        }
-
-        // -------- Helper methods (NO ASSERTS) --------
 
         public bool HasCountriesArray()
         {
-            return _response?["countries"] is JArray;
+            try
+            {
+                var json = JObject.Parse(_lastBody);
+                var countries = json["countries"];
+                return countries != null && countries.Type == JTokenType.Array;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool HasErrorFalse()
         {
-            return _response?["error"] != null &&
-                   _response["error"]!.Type == JTokenType.Boolean &&
-                   _response["error"]!.Value<bool>() == false;
+            try
+            {
+                var json = JObject.Parse(_lastBody);
+                var error = json["error"];
+                return error != null && error.Type == JTokenType.Boolean && error.Value<bool>() == false;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool HasCountryCode(string code)
         {
-            var countries = _response?["countries"] as JArray;
-            if (countries == null) return false;
-
-            return countries.Any(c =>
-                c["countryCode"] != null &&
-                c["countryCode"]!.ToString() == code);
+            try
+            {
+                var json = JObject.Parse(_lastBody);
+                var countries = json["countries"] as JArray;
+                if (countries == null) return false;
+                return countries.Any(c => c["countryCode"]?.ToString() == code);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool ArePhoneCodesValid()
         {
-            var countries = _response?["countries"] as JArray;
-            if (countries == null)
+            try
             {
-                System.Console.WriteLine("No countries array found.");
+                var json = JObject.Parse(_lastBody);
+                var countries = json["countries"] as JArray;
+                if (countries == null || !countries.Any()) return false;
+
+                foreach (var country in countries)
+                {
+                    var phoneCode = country["phoneCode"]?.ToString();
+                    if (string.IsNullOrEmpty(phoneCode)) return false;
+
+                    // Valid international dialing code: optional + followed by 1-4 digits
+                    if (!Regex.IsMatch(phoneCode.Trim(), @"^\+?\d{1,4}$"))
+                        return false;
+                }
+                return true;
+            }
+            catch
+            {
                 return false;
             }
-
-            bool allValid = true;
-
-            foreach (var c in countries)
-            {
-                var countryCode = c["countryCode"]?.ToString();
-                var phoneCode = c["phoneCode"]?.ToString();
-
-                if (string.IsNullOrWhiteSpace(phoneCode))
-                {
-                    System.Console.WriteLine(
-                        $"INVALID phoneCode: empty | countryCode={countryCode}"
-                    );
-                    allValid = false;
-                    continue;
-                }
-
-                // allow digits, space, dash, comma
-                bool isValid = phoneCode.All(ch =>
-                    char.IsDigit(ch) || ch == '-' || ch == ',' || ch == ' '
-                );
-
-                if (!isValid)
-                {
-                    System.Console.WriteLine(
-                        $"INVALID phoneCode '{phoneCode}' | countryCode={countryCode}"
-                    );
-                    allValid = false;
-                }
-                else
-                {
-                    System.Console.WriteLine(
-                        $" VALID phoneCode '{phoneCode}' | countryCode={countryCode}"
-                    );
-                }
-            }
-
-            return allValid;
         }
 
+        public bool ArePhoneCodesNumericString()
+        {
+            try
+            {
+                var json = JObject.Parse(_lastBody);
+                var countries = json["countries"] as JArray;
+                if (countries == null || !countries.Any()) return false;
+
+                foreach (var country in countries)
+                {
+                    var phoneCode = country["phoneCode"]?.ToString();
+                    if (string.IsNullOrEmpty(phoneCode)) return false;
+
+                    // Strip optional leading '+' then check remaining chars are all digits
+                    var digits = phoneCode.Trim();
+                    if (digits.StartsWith("+"))
+                        digits = digits.Substring(1);
+
+                    if (string.IsNullOrEmpty(digits)) return false;
+                    if (!digits.All(char.IsDigit)) return false;
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
