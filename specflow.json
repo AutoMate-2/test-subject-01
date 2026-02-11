@@ -1,0 +1,13 @@
+﻿{
+  "language": {
+    "feature": "en-US"
+  },
+  "bindingCulture": {
+    "name": "en-US"
+  },
+  "stepAssemblies": [
+    {
+      "assembly": "to-integrations"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "ToIntegrationsConfig": {
+    "BaseUrl": "https://integrations-main-nws.nugios.test/",
+    "AgentId": "kaz",
+    "AgentPassword": "54321"
+  },
+  "CountryCodes": [
+    "AZ",
+    "MV",
+    "TH",
+    "GE",
+    "QA",
+    "AE",
+    "SC",
+    "MU",
+    "TR",
+    "KZ",
+    "VN"
+  ]
+}

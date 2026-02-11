@@ -1,0 +1,52 @@
+﻿# =============================================================================
+# TOUR OPERATOR INTEGRATION TESTS - GitLab CI/CD Pipeline
+# =============================================================================
+# Uses the shared DevOps template for code review and integration tests
+# =============================================================================
+
+stages:
+  - code_review
+  - tests
+
+include:
+  - project: 'integration-tests/devops-testing-template'
+    ref: 'main'
+    file: 'dotnet-integration-tests-v2.yml'
+
+# =============================================================================
+# CODE REVIEW
+# =============================================================================
+code_review:
+  extends: .code_review_template
+  stage: code_review
+  variables:
+    PROJECT_FILE: "*.csproj"
+    SKIP_FORMAT_CHECK: "false"
+
+# =============================================================================
+# TOUR OPERATOR INTEGRATION'S TEST SUITE
+# =============================================================================
+"ToIntegration: [smoke]":
+  extends: .smoke_tests_template
+  stage: tests
+  needs:
+    - job: code_review
+      optional: true
+  variables:
+    TEST_FILTER: "Category=tointegration_smoke"
+    TEST_RESULTS_DIR: "test-results/ToIntegration_smoke"
+    TESTMO_PROJECT_ID: "4"
+    TESTMO_RUN_NAME: "TO Integration API Smoke Run"
+    TESTMO_SOURCE: "ToIntegration-tests"
+    CLICKUP_LIST_ID: "901517077751"
+
+"ToIntegration: [fullSuit]":
+  extends: .full_suite_tests_template
+  stage: tests
+  variables:
+    TEST_FILTER: "Category=tointegration"
+    TEST_RESULTS_DIR: "test-results/ToIntegration-full"
+    TESTMO_PROJECT_ID: "4"
+    TESTMO_RUN_NAME: "TO Integration API Full Suite"
+    TESTMO_SOURCE: "ToIntegration-tests"
+    CLICKUP_LIST_ID: "901517077751"
