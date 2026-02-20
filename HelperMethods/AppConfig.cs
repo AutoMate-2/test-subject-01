@@ -11,42 +11,24 @@ namespace to_integrations.HelperMethods
 
         public static void Load(string configFileName)
         {
-            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFileName);
-            
-            if (!File.Exists(configPath))
-            {
-                configPath = Path.Combine(Directory.GetCurrentDirectory(), configFileName);
-            }
+            if (_isLoaded) return;
 
+            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFileName);
             if (File.Exists(configPath))
             {
                 var jsonContent = File.ReadAllText(configPath);
                 _configDocument = JsonDocument.Parse(jsonContent);
                 _isLoaded = true;
             }
-            else
-            {
-                _isLoaded = false;
-            }
         }
 
         public static string GetValue(string key)
         {
-            if (!_isLoaded || _configDocument == null)
-            {
-                return null;
-            }
+            if (_configDocument == null) return null;
 
-            try
+            if (_configDocument.RootElement.TryGetProperty(key, out var value))
             {
-                if (_configDocument.RootElement.TryGetProperty(key, out var element))
-                {
-                    return element.GetString();
-                }
-            }
-            catch
-            {
-                return null;
+                return value.GetString();
             }
 
             return null;
