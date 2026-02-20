@@ -1,4 +1,4 @@
-﻿{
+{
   "language": {
     "feature": "en-US"
   },
@@ -7,7 +7,7 @@
   },
   "stepAssemblies": [
     {
-      "assembly": "to-integrations"
+      "assembly": "to_integrations"
     }
   ]
 }
