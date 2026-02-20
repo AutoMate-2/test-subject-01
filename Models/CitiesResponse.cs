@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -22,10 +21,10 @@ namespace to_integrations.Models
         public string ResponseId { get; set; }
 
         [JsonPropertyName("Data")]
-        public List<CityData> Data { get; set; }
+        public List<CityItem> Data { get; set; }
     }
 
-    public class CityData
+    public class CityItem
     {
         [JsonPropertyName("cityid")]
         public string CityId { get; set; }

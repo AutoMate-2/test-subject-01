@@ -1,38 +1,42 @@
-using System;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using TechTalk.SpecFlow;
+using to_integrations.CRUD.Auth;
 using to_integrations.HelperMethods;
 
 namespace to_integrations.Config
 {
     [Binding]
-    public static class SpecFlowHooks
+    public class SpecFlowHooks
     {
         [BeforeTestRun]
-        public static void BeforeTestRun()
+        public static async Task BeforeTestRun()
         {
-            TestContext.Progress.WriteLine("Initializing test run...");
             AppConfig.Load("Atata.test.json");
             ToIntegrationsEnvironment.Initialize();
             TestContext.Progress.WriteLine($"Base URL: {ToIntegrationsEnvironment.BaseUrl}");
+
+            var authCrud = new AuthCrud();
+            TokenCache.CachedToken = await authCrud.LoginAsync();
+            TestContext.Progress.WriteLine("Authentication completed, token cached");
         }
 
         [BeforeScenario]
-        public static void BeforeScenario(ScenarioContext scenarioContext)
+        public void BeforeScenario(ScenarioContext scenarioContext)
         {
             TestContext.Progress.WriteLine($"Starting scenario: {scenarioContext.ScenarioInfo.Title}");
         }
 
         [AfterScenario]
-        public static void AfterScenario(ScenarioContext scenarioContext)
+        public void AfterScenario(ScenarioContext scenarioContext)
         {
             TestContext.Progress.WriteLine($"Completed scenario: {scenarioContext.ScenarioInfo.Title}");
         }
 
         [BeforeScenario("@noauth")]
-        public static void BeforeUnauthenticatedScenario()
+        public void BeforeNoAuthScenario()
         {
-            TokenCache.CachedToken = string.Empty;
+            TokenCache.CachedToken = null;
             TestContext.Progress.WriteLine("Cleared authentication token for @noauth scenario");
         }
     }
