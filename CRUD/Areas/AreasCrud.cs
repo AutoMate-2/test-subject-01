@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using ToIntegrations.HelperMethods;
 using ToIntegrations.Models;
 
-namespace ToIntegrations.CRUD.Cities
+namespace ToIntegrations.CRUD.Areas
 {
-    public static class CitiesCrud
+    public static class AreasCrud
     {
-        public static async Task<(HttpResponseMessage Response, CitiesResponse Body, long ElapsedMs)> GetCitiesWithStatusAsync()
+        public static async Task<(HttpResponseMessage Response, AreasResponse Body, long ElapsedMs)> GetAreasWithStatusAsync()
         {
             using var client = new HttpClient();
             client.BaseAddress = new Uri(ToIntegrationsEnvironment.BaseUrl);
@@ -18,19 +18,19 @@ namespace ToIntegrations.CRUD.Cities
             var agentId = AppConfig.GetValue("AgentId") ?? "username";
             var agentPassword = AppConfig.GetValue("AgentPassword") ?? "password";
 
-            var requestUrl = $"/v3.00/api/Cities?agentid={Uri.EscapeDataString(agentId)}&agentpassword={Uri.EscapeDataString(agentPassword)}";
+            var requestUrl = $"/v3.00/api/Areas?agentid={Uri.EscapeDataString(agentId)}&agentpassword={Uri.EscapeDataString(agentPassword)}";
 
             var stopwatch = Stopwatch.StartNew();
             var response = await client.GetAsync(requestUrl);
             stopwatch.Stop();
 
-            CitiesResponse body = null;
+            AreasResponse body = null;
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
                 try
                 {
-                    body = JsonSerializer.Deserialize<CitiesResponse>(content);
+                    body = JsonSerializer.Deserialize<AreasResponse>(content);
                 }
                 catch (JsonException)
                 {
