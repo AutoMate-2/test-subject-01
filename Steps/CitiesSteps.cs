@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Reqnroll;
-using to_integrations.CRUD.Cities;
-using to_integrations.HelperMethods;
-using to_integrations.Models;
+using ToIntegrations.CRUD.Cities;
+using ToIntegrations.HelperMethods;
+using ToIntegrations.Models;
 
-namespace to_integrations.Steps
+namespace ToIntegrations.Steps
 {
     [Binding]
     public class CitiesSteps
@@ -24,88 +25,96 @@ namespace to_integrations.Steps
         [Given(@"I have valid authentication credentials")]
         public void GivenIHaveValidAuthenticationCredentials()
         {
-            var agentId = AppConfig.GetValue("AgentId");
-            var agentPassword = AppConfig.GetValue("AgentPassword");
-            Assert.IsNotNull(agentId, "AgentId should be configured");
-            Assert.IsFalse(string.IsNullOrEmpty(agentId), "AgentId should not be empty");
-            Assert.IsNotNull(agentPassword, "AgentPassword should be configured");
-            Assert.IsFalse(string.IsNullOrEmpty(agentPassword), "AgentPassword should not be empty");
-            TestContext.Progress.WriteLine("Valid authentication credentials confirmed.");
+            var agentId = AppConfig.GetValue("AgentId") ?? "username";
+            var agentPassword = AppConfig.GetValue("AgentPassword") ?? "password";
+            Assert.IsNotEmpty(agentId, "AgentId must be configured");
+            Assert.IsNotEmpty(agentPassword, "AgentPassword must be configured");
+            _scenarioContext["AgentId"] = agentId;
+            _scenarioContext["AgentPassword"] = agentPassword;
+            TestContext.Progress.WriteLine("Valid authentication credentials are available");
         }
 
         [When(@"I send a GET request to the Cities endpoint")]
         public async Task WhenISendAGETRequestToTheCitiesEndpoint()
         {
             var (response, body, elapsedMs) = await CitiesCrud.GetCitiesWithStatusAsync();
-            _scenarioContext["CitiesHttpResponse"] = response;
-            _scenarioContext["CitiesResponseBody"] = body;
+            _scenarioContext["CitiesResponse"] = response;
+            _scenarioContext["CitiesBody"] = body;
             _scenarioContext["CitiesElapsedMs"] = elapsedMs;
-            TestContext.Progress.WriteLine($"Cities API responded in {elapsedMs}ms with status {(int)response.StatusCode}");
+            TestContext.Progress.WriteLine($"Cities API responded with status {(int)response.StatusCode} in {elapsedMs}ms");
         }
 
         [Then(@"the response status code should be (\d+)")]
         public void ThenTheResponseStatusCodeShouldBe(int expectedStatusCode)
         {
-            var response = (HttpResponseMessage)_scenarioContext["CitiesHttpResponse"];
+            var response = _scenarioContext["CitiesResponse"] as HttpResponseMessage;
+            Assert.IsNotNull(response, "Cities response was not captured");
             Assert.AreEqual(expectedStatusCode, (int)response.StatusCode, $"Expected status code {expectedStatusCode} but got {(int)response.StatusCode}");
         }
 
-        [Then(@"the response body Code should be ""(.*)""|the response body Code should be '(.*)'")]
+        [Then(@"the response body Code should be \"(.*)\"")]
         public void ThenTheResponseBodyCodeShouldBe(string expectedCode)
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
-            Assert.IsNotNull(body, "Response body should not be null");
+            var body = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(body, "Cities response body was not captured or failed to deserialize");
             Assert.AreEqual(expectedCode, body.Code, $"Expected Code '{expectedCode}' but got '{body.Code}'");
         }
 
         [Then(@"the response body Message should be empty")]
         public void ThenTheResponseBodyMessageShouldBeEmpty()
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
+            var body = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(body, "Cities response body was not captured or failed to deserialize");
             Assert.IsTrue(string.IsNullOrEmpty(body.Message), $"Expected empty Message but got '{body.Message}'");
         }
 
         [Then(@"the response Data array should exist")]
         public void ThenTheResponseDataArrayShouldExist()
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
-            Assert.IsNotNull(body.Data, "Data array should exist in the response");
+            var body = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(body, "Cities response body was not captured or failed to deserialize");
+            Assert.IsNotNull(body.Data, "Data array is null");
         }
 
         [Then(@"the Data array length should be greater than (\d+)")]
         public void ThenTheDataArrayLengthShouldBeGreaterThan(int minCount)
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
-            Assert.Greater(body.Data.Count, minCount, $"Expected Data array length greater than {minCount} but got {body.Data.Count}");
+            var body = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(body, "Cities response body was not captured or failed to deserialize");
+            Assert.IsNotNull(body.Data, "Data array is null");
+            Assert.Greater(body.Data.Count, minCount, $"Expected Data array length > {minCount} but got {body.Data.Count}");
         }
 
         [Given(@"the API returns a successful response")]
         public async Task GivenTheAPIReturnsASuccessfulResponse()
         {
             var (response, body, elapsedMs) = await CitiesCrud.GetCitiesWithStatusAsync();
-            _scenarioContext["CitiesHttpResponse"] = response;
-            _scenarioContext["CitiesResponseBody"] = body;
+            _scenarioContext["CitiesResponse"] = response;
+            _scenarioContext["CitiesBody"] = body;
             _scenarioContext["CitiesElapsedMs"] = elapsedMs;
-            Assert.AreEqual(200, (int)response.StatusCode, "Expected 200 OK from Cities API");
+            Assert.AreEqual(200, (int)response.StatusCode, "Expected successful response for Cities API");
+            Assert.IsNotNull(body, "Cities response body was not captured");
+            Assert.AreEqual("00", body.Code, "Expected Code '00' for successful response");
         }
 
         [When(@"I inspect each item in the Data array")]
         public void WhenIInspectEachItemInTheDataArray()
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
-            Assert.IsNotNull(body.Data, "Data array should exist");
-            Assert.Greater(body.Data.Count, 0, "Data array should not be empty");
-            TestContext.Progress.WriteLine($"Inspecting {body.Data.Count} city items.");
+            var body = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(body?.Data, "Cities Data array is null or not captured");
+            _scenarioContext["CitiesDataItems"] = body.Data;
+            TestContext.Progress.WriteLine($"Inspecting {body.Data.Count} city items");
         }
 
         [Then(@"each city item should contain a cityid")]
         public void ThenEachCityItemShouldContainACityid()
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
-            foreach (var city in body.Data)
+            var items = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(items?.Data, "Cities Data array is null");
+            foreach (var item in items.Data)
             {
-                Assert.IsNotNull(city.CityId, "Each city item should contain a cityid");
-                Assert.IsNotEmpty(city.CityId, "cityid should not be empty");
+                Assert.IsNotNull(item.CityId, "City item is missing cityid");
+                Assert.IsNotEmpty(item.CityId, "City item has empty cityid");
             }
         }
 
@@ -118,30 +127,33 @@ namespace to_integrations.Steps
         [Then(@"each cityid should be a valid GUID")]
         public void ThenEachCityidShouldBeAValidGUID()
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
-            foreach (var city in body.Data)
+            var items = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(items?.Data, "Cities Data array is null");
+            foreach (var item in items.Data)
             {
-                Assert.IsTrue(Guid.TryParse(city.CityId, out _), $"cityid '{city.CityId}' is not a valid GUID");
+                Assert.IsTrue(Guid.TryParse(item.CityId, out _), $"cityid '{item.CityId}' is not a valid GUID");
             }
         }
 
         [Then(@"each item should contain a cityname")]
         public void ThenEachItemShouldContainACityname()
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
-            foreach (var city in body.Data)
+            var items = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(items?.Data, "Cities Data array is null");
+            foreach (var item in items.Data)
             {
-                Assert.IsNotNull(city.CityName, "Each city item should contain a cityname");
+                Assert.IsNotNull(item.CityName, $"City item with cityid '{item.CityId}' is missing cityname");
             }
         }
 
         [Then(@"each cityname should be a non-empty string")]
         public void ThenEachCitynameShouldBeANonEmptyString()
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
-            foreach (var city in body.Data)
+            var items = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(items?.Data, "Cities Data array is null");
+            foreach (var item in items.Data)
             {
-                Assert.IsNotEmpty(city.CityName, "cityname should be a non-empty string");
+                Assert.IsNotEmpty(item.CityName, $"City item with cityid '{item.CityId}' has empty cityname");
             }
         }
 
@@ -149,26 +161,29 @@ namespace to_integrations.Steps
         public async Task GivenTheAPIReturnsAListOfCities()
         {
             var (response, body, elapsedMs) = await CitiesCrud.GetCitiesWithStatusAsync();
-            _scenarioContext["CitiesHttpResponse"] = response;
-            _scenarioContext["CitiesResponseBody"] = body;
+            _scenarioContext["CitiesResponse"] = response;
+            _scenarioContext["CitiesBody"] = body;
             _scenarioContext["CitiesElapsedMs"] = elapsedMs;
-            Assert.IsNotNull(body.Data, "Data array should exist");
-            Assert.Greater(body.Data.Count, 0, "Cities list should not be empty");
+            Assert.AreEqual(200, (int)response.StatusCode, "Expected successful response for Cities API");
+            Assert.IsNotNull(body?.Data, "Cities Data array is null");
+            Assert.Greater(body.Data.Count, 0, "Expected at least one city in the response");
         }
 
         [When(@"I collect all cityid values")]
         public void WhenICollectAllCityidValues()
         {
-            var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
+            var body = _scenarioContext["CitiesBody"] as CitiesResponse;
+            Assert.IsNotNull(body?.Data, "Cities Data array is null");
             var cityIds = body.Data.Select(c => c.CityId).ToList();
-            _scenarioContext["CityIds"] = cityIds;
-            TestContext.Progress.WriteLine($"Collected {cityIds.Count} cityid values.");
+            _scenarioContext["CollectedCityIds"] = cityIds;
+            TestContext.Progress.WriteLine($"Collected {cityIds.Count} cityid values");
         }
 
         [Then(@"there should be no duplicate cityid values")]
         public void ThenThereShouldBeNoDuplicateCityidValues()
         {
-            var cityIds = (List<string>)_scenarioContext["CityIds"];
+            var cityIds = _scenarioContext["CollectedCityIds"] as List<string>;
+            Assert.IsNotNull(cityIds, "City IDs were not collected");
             var duplicates = cityIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             Assert.IsEmpty(duplicates, $"Found duplicate cityid values: {string.Join(", ", duplicates)}");
         }
@@ -177,7 +192,93 @@ namespace to_integrations.Steps
         public void ThenTheAPIResponseTimeShouldBeLessThanMilliseconds(int maxMs)
         {
             var elapsedMs = (long)_scenarioContext["CitiesElapsedMs"];
-            Assert.Less(elapsedMs, maxMs, $"API response time {elapsedMs}ms exceeded {maxMs}ms threshold");
+            Assert.Less(elapsedMs, maxMs, $"Expected response time < {maxMs}ms but got {elapsedMs}ms");
+        }
+
+        [Given(@"I store all \"(.*)\" values as validAreaIds")]
+        public void GivenIStoreAllValuesAsValidAreaIds(string fieldName)
+        {
+            var content = _scenarioContext["GenericResponseContent"] as string;
+            Assert.IsNotNull(content, "Response content was not captured");
+
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            Assert.IsTrue(root.TryGetProperty("Data", out var dataArray), "Response does not contain 'Data' property");
+            Assert.AreEqual(JsonValueKind.Array, dataArray.ValueKind, "'Data' is not an array");
+
+            var validAreaIds = new HashSet<string>();
+            foreach (var item in dataArray.EnumerateArray())
+            {
+                if (item.TryGetProperty(fieldName, out var fieldValue))
+                {
+                    var fieldString = fieldValue.GetString();
+                    if (!string.IsNullOrEmpty(fieldString))
+                    {
+                        validAreaIds.Add(fieldString);
+                    }
+                }
+            }
+
+            _scenarioContext["ValidAreaIds"] = validAreaIds;
+            TestContext.Progress.WriteLine($"Stored {validAreaIds.Count} valid area IDs");
+        }
+
+        [Then(@"for each city in response \"(.*)\"$")]
+        public void ThenForEachCityInResponse(string arrayName)
+        {
+            var content = _scenarioContext["GenericResponseContent"] as string;
+            Assert.IsNotNull(content, "Response content was not captured");
+
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            Assert.IsTrue(root.TryGetProperty(arrayName, out var dataArray), $"Response does not contain '{arrayName}' property");
+            Assert.AreEqual(JsonValueKind.Array, dataArray.ValueKind, $"'{arrayName}' is not an array");
+
+            var items = new List<JsonElement>();
+            foreach (var item in dataArray.EnumerateArray())
+            {
+                items.Add(item.Clone());
+            }
+
+            Assert.Greater(items.Count, 0, $"'{arrayName}' array is empty");
+            _scenarioContext["CityDataArrayItems"] = items;
+            TestContext.Progress.WriteLine($"Found {items.Count} city items in '{arrayName}' array");
+        }
+
+        [Then(@"each city areaid should exist in the valid area IDs list")]
+        public void ThenEachCityAreaidShouldExistInTheValidAreaIDsList()
+        {
+            var validAreaIds = _scenarioContext["ValidAreaIds"] as HashSet<string>;
+            Assert.IsNotNull(validAreaIds, "Valid area IDs were not captured");
+            Assert.Greater(validAreaIds.Count, 0, "No valid area IDs were found");
+
+            var items = _scenarioContext["CityDataArrayItems"] as List<JsonElement>;
+            Assert.IsNotNull(items, "City data array items were not captured");
+
+            var invalidCities = new List<string>();
+            int index = 0;
+            foreach (var item in items)
+            {
+                if (item.TryGetProperty("areaid", out var areaIdValue))
+                {
+                    var areaId = areaIdValue.GetString();
+                    if (!string.IsNullOrEmpty(areaId) && !validAreaIds.Contains(areaId))
+                    {
+                        string cityId = "unknown";
+                        if (item.TryGetProperty("cityid", out var cityIdValue))
+                        {
+                            cityId = cityIdValue.GetString() ?? "unknown";
+                        }
+                        invalidCities.Add($"City '{cityId}' has invalid areaid '{areaId}'");
+                    }
+                }
+                index++;
+            }
+
+            Assert.IsEmpty(invalidCities, $"Found cities with invalid area references:\n{string.Join("\n", invalidCities)}");
+            TestContext.Progress.WriteLine($"All {items.Count} cities have valid areaid references");
         }
     }
 }

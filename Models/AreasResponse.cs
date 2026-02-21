@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace ToIntegrations.Models
 {
-    public class CitiesResponse
+    public class AreasResponse
     {
         [JsonPropertyName("Code")]
         public string Code { get; set; }
@@ -22,17 +22,11 @@ namespace ToIntegrations.Models
         public string ResponseID { get; set; }
 
         [JsonPropertyName("Data")]
-        public List<CityItem> Data { get; set; }
+        public List<AreaItem> Data { get; set; }
     }
 
-    public class CityItem
+    public class AreaItem
     {
-        [JsonPropertyName("cityid")]
-        public string CityId { get; set; }
-
-        [JsonPropertyName("cityname")]
-        public string CityName { get; set; }
-
         [JsonPropertyName("areaid")]
         public string AreaId { get; set; }
 

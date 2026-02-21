@@ -38,3 +38,11 @@ Feature: Cities API
   Scenario: Response time under 2 seconds
     When I send a GET request to the Cities endpoint
     Then the API response time should be less than 2000 milliseconds
+
+  @CL-T41 @referential-integrity
+  Scenario: Cities areaid must reference a valid area
+    Given I send a GET request to "/Areas"
+    And I store all "areaid" values as validAreaIds
+    When I send a GET request to "/Cities"
+    Then for each city in response "Data"
+    And each city areaid should exist in the valid area IDs list
