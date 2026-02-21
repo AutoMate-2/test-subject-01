@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
-using TechTalk.SpecFlow;
-using to_integrations.CRUD.Auth;
+using Reqnroll;
+using to_integrations.CRUD.Cities;
 using to_integrations.HelperMethods;
 
 namespace to_integrations.Config
@@ -16,9 +16,15 @@ namespace to_integrations.Config
             ToIntegrationsEnvironment.Initialize();
             TestContext.Progress.WriteLine($"Base URL: {ToIntegrationsEnvironment.BaseUrl}");
 
-            var authCrud = new AuthCrud();
-            TokenCache.CachedToken = await authCrud.LoginAsync();
-            TestContext.Progress.WriteLine("Authentication completed, token cached");
+            // Verify API connectivity by making a test call with configured credentials
+            var citiesCrud = new CitiesCrud();
+            var result = await citiesCrud.GetCitiesWithStatusAsync();
+            Assert.IsTrue((int)result.StatusCode >= 200 && (int)result.StatusCode < 300,
+                $"API connectivity check failed with status {result.StatusCode}");
+            
+            // Mark credentials as validated
+            TokenCache.CachedToken = "valid";
+            TestContext.Progress.WriteLine("API connectivity verified, credentials are valid");
         }
 
         [BeforeScenario]

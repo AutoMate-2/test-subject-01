@@ -8,7 +8,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using TechTalk.SpecFlow;
+using Reqnroll;
 using to_integrations.CRUD.Cities;
 using to_integrations.HelperMethods;
 using to_integrations.Models;
@@ -32,9 +32,12 @@ namespace to_integrations.Steps
         [Given(@"I have valid authentication credentials")]
         public void GivenIHaveValidAuthenticationCredentials()
         {
-            var token = TokenCache.CachedToken;
-            Assert.IsNotNull(token, "Authentication token should be available");
-            Assert.IsFalse(string.IsNullOrEmpty(token), "Authentication token should not be empty");
+            var agentId = AppConfig.GetValue("AgentId");
+            var agentPassword = AppConfig.GetValue("AgentPassword");
+            Assert.IsNotNull(agentId, "AgentId should be configured");
+            Assert.IsFalse(string.IsNullOrEmpty(agentId), "AgentId should not be empty");
+            Assert.IsNotNull(agentPassword, "AgentPassword should be configured");
+            Assert.IsFalse(string.IsNullOrEmpty(agentPassword), "AgentPassword should not be empty");
             TestContext.Progress.WriteLine("Valid authentication credentials confirmed");
         }
 
@@ -136,7 +139,7 @@ namespace to_integrations.Steps
             TestContext.Progress.WriteLine($"Response status code is {actualStatusCode} as expected");
         }
 
-        [Then(@"the response body Code should be \"(.*)\"")]
+        [Then(@"the response body Code should be ""(.*)""")]
         public void ThenTheResponseBodyCodeShouldBe(string expectedCode)
         {
             if (_response == null && _scenarioContext.ContainsKey("CitiesResponse"))

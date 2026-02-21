@@ -35,11 +35,6 @@ namespace to_integrations.CRUD.Cities
             var requestUrl = $"{_baseUrl}/v3.00/api/Cities?agentid={Uri.EscapeDataString(agentId)}&agentpassword={Uri.EscapeDataString(agentPassword)}";
             
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-            
-            if (!string.IsNullOrEmpty(TokenCache.CachedToken))
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", TokenCache.CachedToken);
-            }
 
             var response = await _httpClient.SendAsync(request);
             var statusCode = response.StatusCode;
