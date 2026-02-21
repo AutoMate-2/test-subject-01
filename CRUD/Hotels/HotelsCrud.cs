@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ToIntegrations.HelperMethods;
+using to_integrations.HelperMethods;
 using ToIntegrations.Models;
 
 namespace ToIntegrations.CRUD.Hotels

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Reqnroll;
 using ToIntegrations.CRUD.Hotels;
-using ToIntegrations.HelperMethods;
+using to_integrations.HelperMethods;
 using ToIntegrations.Models;
 
 namespace ToIntegrations.Steps
@@ -40,7 +40,7 @@ namespace ToIntegrations.Steps
             Assert.AreEqual(expectedStatusCode, (int)response.StatusCode, $"Expected status code {expectedStatusCode} but got {(int)response.StatusCode}");
         }
 
-        [Then(@"the Hotels response body Code should be \"(.*)\"")]
+        [Then(@"the Hotels response body Code should be (.*)")]
         public void ThenTheHotelsResponseBodyCodeShouldBe(string expectedCode)
         {
             var body = _scenarioContext["HotelsBody"] as HotelsResponse;
@@ -73,7 +73,7 @@ namespace ToIntegrations.Steps
             Assert.Greater(body.Data.Count, minCount, $"Expected Data array length > {minCount} but got {body.Data.Count}");
         }
 
-        [Then(@"for each hotel in response \"(.*)\"$")]
+        [Then(@"for each hotel in response (.*)")]
         public void ThenForEachHotelInResponse(string arrayName)
         {
             var content = _scenarioContext["GenericResponseContent"] as string;

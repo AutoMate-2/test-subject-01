@@ -22,8 +22,11 @@ namespace to_integrations.CRUD.Districts
                     new AuthenticationHeaderValue("Bearer", TokenCache.CachedToken);
             }
 
+            var agentId = AppConfig.GetValue("AgentId");
+            var agentPassword = AppConfig.GetValue("AgentPassword");
+            var requestUrl = $"/api/districts?agentid={Uri.EscapeDataString(agentId)}&agentpassword={Uri.EscapeDataString(agentPassword)}";
             var sw = Stopwatch.StartNew();
-            var response = await client.GetAsync("/api/districts");
+            var response = await client.GetAsync(requestUrl);
             sw.Stop();
 
             var content = await response.Content.ReadAsStringAsync();

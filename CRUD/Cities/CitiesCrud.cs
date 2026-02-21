@@ -3,10 +3,10 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ToIntegrations.HelperMethods;
-using ToIntegrations.Models;
+using to_integrations.HelperMethods;
+using to_integrations.Models;
 
-namespace ToIntegrations.CRUD.Cities
+namespace to_integrations.CRUD.Cities
 {
     public static class CitiesCrud
     {

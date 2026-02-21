@@ -6,9 +6,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Reqnroll;
-using ToIntegrations.CRUD.Cities;
-using ToIntegrations.HelperMethods;
-using ToIntegrations.Models;
+using to_integrations.CRUD.Cities;
+using to_integrations.HelperMethods;
+using to_integrations.Models;
 
 namespace ToIntegrations.Steps
 {
@@ -52,7 +52,7 @@ namespace ToIntegrations.Steps
             Assert.AreEqual(expectedStatusCode, (int)response.StatusCode, $"Expected status code {expectedStatusCode} but got {(int)response.StatusCode}");
         }
 
-        [Then(@"the response body Code should be \"(.*)\"")]
+        [Then(@"the response body Code should be (.*)")]
         public void ThenTheResponseBodyCodeShouldBe(string expectedCode)
         {
             var body = _scenarioContext["CitiesBody"] as CitiesResponse;
@@ -195,7 +195,7 @@ namespace ToIntegrations.Steps
             Assert.Less(elapsedMs, maxMs, $"Expected response time < {maxMs}ms but got {elapsedMs}ms");
         }
 
-        [Given(@"I store all \"(.*)\" values as validAreaIds")]
+        [Given(@"I store all (.*) values as validAreaIds")]
         public void GivenIStoreAllValuesAsValidAreaIds(string fieldName)
         {
             var content = _scenarioContext["GenericResponseContent"] as string;
@@ -224,7 +224,7 @@ namespace ToIntegrations.Steps
             TestContext.Progress.WriteLine($"Stored {validAreaIds.Count} valid area IDs");
         }
 
-        [Then(@"for each city in response \"(.*)\"$")]
+        [Then(@"for each city in response (.*)")]
         public void ThenForEachCityInResponse(string arrayName)
         {
             var content = _scenarioContext["GenericResponseContent"] as string;

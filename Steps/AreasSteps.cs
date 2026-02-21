@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Reqnroll;
 using ToIntegrations.CRUD.Areas;
-using ToIntegrations.HelperMethods;
+using to_integrations.HelperMethods;
 using ToIntegrations.Models;
 
 namespace ToIntegrations.Steps
@@ -34,31 +34,9 @@ namespace ToIntegrations.Steps
             TestContext.Progress.WriteLine("Valid agent credentials are available");
         }
 
-        [When(@"I send a GET request to \"(.*)\"")]
-        public async Task WhenISendAGETRequestTo(string endpoint)
-        {
-            using var client = new HttpClient();
-            client.BaseAddress = new Uri(ToIntegrationsEnvironment.BaseUrl);
+        // Removed ambiguous generic GET request step definition
 
-            var agentId = AppConfig.GetValue("AgentId") ?? "username";
-            var agentPassword = AppConfig.GetValue("AgentPassword") ?? "password";
-
-            var requestUrl = $"/v3.00/api{endpoint}?agentid={Uri.EscapeDataString(agentId)}&agentpassword={Uri.EscapeDataString(agentPassword)}";
-
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var response = await client.GetAsync(requestUrl);
-            stopwatch.Stop();
-
-            var content = await response.Content.ReadAsStringAsync();
-            _scenarioContext["GenericResponse"] = response;
-            _scenarioContext["GenericResponseContent"] = content;
-            _scenarioContext["GenericElapsedMs"] = stopwatch.ElapsedMilliseconds;
-            _scenarioContext["RequestedEndpoint"] = endpoint;
-
-            TestContext.Progress.WriteLine($"GET {endpoint} responded with status {(int)response.StatusCode} in {stopwatch.ElapsedMilliseconds}ms");
-        }
-
-        [Then(@"for each item in response \"(.*)\"")]
+        [Then(@"for each item in response (.*)")]
         public void ThenForEachItemInResponse(string arrayName)
         {
             var content = _scenarioContext["GenericResponseContent"] as string;
@@ -81,7 +59,7 @@ namespace ToIntegrations.Steps
             TestContext.Progress.WriteLine($"Found {items.Count} items in '{arrayName}' array");
         }
 
-        [Then(@"the field \"(.*)\" must match GUID format")]
+        [Then(@"the field (.*) must match GUID format")]
         public void ThenTheFieldMustMatchGUIDFormat(string fieldName)
         {
             var items = _scenarioContext["DataArrayItems"] as List<JsonElement>;
@@ -103,7 +81,7 @@ namespace ToIntegrations.Steps
             TestContext.Progress.WriteLine($"All {items.Count} items have valid GUID format for field '{fieldName}'");
         }
 
-        [Then(@"the field \"(.*)\" must not be null")]
+        [Then(@"the field (.*) must not be null")]
         public void ThenTheFieldMustNotBeNull(string fieldName)
         {
             var items = _scenarioContext["DataArrayItems"] as List<JsonElement>;
@@ -124,7 +102,7 @@ namespace ToIntegrations.Steps
             TestContext.Progress.WriteLine($"All {items.Count} items have non-null '{fieldName}' field");
         }
 
-        [Then(@"the field \"(.*)\" must not be empty")]
+        [Then(@"the field (.*) must not be empty")]
         public void ThenTheFieldMustNotBeEmpty(string fieldName)
         {
             var items = _scenarioContext["DataArrayItems"] as List<JsonElement>;
@@ -145,7 +123,7 @@ namespace ToIntegrations.Steps
             TestContext.Progress.WriteLine($"All {items.Count} items have non-empty '{fieldName}' field");
         }
 
-        [Then(@"all \"(.*)\" values in response \"(.*)\" must be unique")]
+        [Then(@"all (.*) values in response (.*) must be unique")]
         public void ThenAllValuesInResponseMustBeUnique(string fieldName, string arrayName)
         {
             var content = _scenarioContext["GenericResponseContent"] as string;
@@ -199,7 +177,7 @@ namespace ToIntegrations.Steps
             Assert.AreEqual(expectedStatusCode, (int)response.StatusCode, $"Expected status code {expectedStatusCode} but got {(int)response.StatusCode}");
         }
 
-        [Then(@"the Areas response body Code should be \"(.*)\"")]
+        [Then(@"the Areas response body Code should be (.*)")]
         public void ThenTheAreasResponseBodyCodeShouldBe(string expectedCode)
         {
             var body = _scenarioContext["AreasBody"] as AreasResponse;

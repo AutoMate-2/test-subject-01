@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ToIntegrations.Models
+namespace to_integrations.Models
 {
     public class CitiesResponse
     {
