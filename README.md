@@ -1,3 +1,25 @@
+## Critical Coding Practices for Test Scripts
+
+**Do NOT:**
+- Place code outside the namespace or class block (no top-level statements).
+- Create duplicate class or namespace definitions in the same file.
+- Write ambiguous or overly generic step definitions (e.g., generic 'When I send a GET request to (.*)' handlers).
+
+**ALWAYS:**
+- Keep all using statements at the top.
+- Place all step definitions inside the correct class and namespace.
+- Match step text exactly and avoid catch-all patterns.
+
+These mistakes cause build failures, test ambiguity, and confusion for both humans and AI tools (like Copilot).
+## Important: Step Definition Best Practices
+
+**Do NOT create ambiguous or overly generic step definitions (e.g., generic 'When I send a GET request to (.*)' handlers) that match multiple steps.**
+
+Every step in your feature files should have a clear, specific, and non-conflicting step definition. Ambiguous steps cause test failures and confusion for both humans and AI tools (like Copilot).
+
+**Always match step text exactly, use explicit types, and avoid catch-all patterns.**
+
+This ensures robust, maintainable, and error-free test automation.
 # TO Integrations Tests
 
 ## Overview

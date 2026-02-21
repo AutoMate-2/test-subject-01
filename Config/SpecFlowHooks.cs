@@ -1,4 +1,3 @@
-using to_integrations.CRUD.Cities;
 using System;
 using System.Net.Http;
 using System.Text;
@@ -7,7 +6,6 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Reqnroll;
 using to_integrations.CRUD.Cities;
-using to_integrations.HelperMethods;
 using to_integrations.HelperMethods;
 
 namespace to_integrations.Config

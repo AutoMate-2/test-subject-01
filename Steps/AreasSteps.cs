@@ -22,134 +22,11 @@ namespace ToIntegrations.Steps
             _scenarioContext = scenarioContext;
         }
 
-        [Given(@"valid agent credentials")]
-        public void GivenValidAgentCredentials()
-        {
-            var agentId = AppConfig.GetValue("AgentId") ?? "username";
-            var agentPassword = AppConfig.GetValue("AgentPassword") ?? "password";
-            Assert.IsNotEmpty(agentId, "AgentId must be configured");
-            Assert.IsNotEmpty(agentPassword, "AgentPassword must be configured");
-            _scenarioContext["AgentId"] = agentId;
-            _scenarioContext["AgentPassword"] = agentPassword;
-            TestContext.Progress.WriteLine("Valid agent credentials are available");
-        }
-
         // Removed ambiguous generic GET request step definition
 
-        [Then(@"for each item in response (.*)")]
-        public void ThenForEachItemInResponse(string arrayName)
-        {
-            var content = _scenarioContext["GenericResponseContent"] as string;
-            Assert.IsNotNull(content, "Response content was not captured");
+        // Generic iteration step removed - use type-specific step definitions instead
 
-            using var doc = JsonDocument.Parse(content);
-            var root = doc.RootElement;
-
-            Assert.IsTrue(root.TryGetProperty(arrayName, out var dataArray), $"Response does not contain '{arrayName}' property");
-            Assert.AreEqual(JsonValueKind.Array, dataArray.ValueKind, $"'{arrayName}' is not an array");
-
-            var items = new List<JsonElement>();
-            foreach (var item in dataArray.EnumerateArray())
-            {
-                items.Add(item.Clone());
-            }
-
-            Assert.Greater(items.Count, 0, $"'{arrayName}' array is empty");
-            _scenarioContext["DataArrayItems"] = items;
-            TestContext.Progress.WriteLine($"Found {items.Count} items in '{arrayName}' array");
-        }
-
-        [Then(@"the field (.*) must match GUID format")]
-        public void ThenTheFieldMustMatchGUIDFormat(string fieldName)
-        {
-            var items = _scenarioContext["DataArrayItems"] as List<JsonElement>;
-            Assert.IsNotNull(items, "Data array items were not captured");
-
-            int index = 0;
-            foreach (var item in items)
-            {
-                Assert.IsTrue(item.TryGetProperty(fieldName, out var fieldValue), $"Item at index {index} is missing field '{fieldName}'");
-                
-                var fieldString = fieldValue.GetString();
-                Assert.IsNotNull(fieldString, $"Item at index {index} has null '{fieldName}'");
-                Assert.IsNotEmpty(fieldString, $"Item at index {index} has empty '{fieldName}'");
-                Assert.IsTrue(Guid.TryParse(fieldString, out _), $"Item at index {index}: '{fieldName}' value '{fieldString}' is not a valid GUID");
-                
-                index++;
-            }
-
-            TestContext.Progress.WriteLine($"All {items.Count} items have valid GUID format for field '{fieldName}'");
-        }
-
-        [Then(@"the field (.*) must not be null")]
-        public void ThenTheFieldMustNotBeNull(string fieldName)
-        {
-            var items = _scenarioContext["DataArrayItems"] as List<JsonElement>;
-            Assert.IsNotNull(items, "Data array items were not captured");
-
-            int index = 0;
-            foreach (var item in items)
-            {
-                Assert.IsTrue(item.TryGetProperty(fieldName, out var fieldValue), $"Item at index {index} is missing field '{fieldName}'");
-                Assert.AreNotEqual(JsonValueKind.Null, fieldValue.ValueKind, $"Item at index {index} has null '{fieldName}'");
-                
-                var fieldString = fieldValue.GetString();
-                Assert.IsNotNull(fieldString, $"Item at index {index} has null '{fieldName}' value");
-                
-                index++;
-            }
-
-            TestContext.Progress.WriteLine($"All {items.Count} items have non-null '{fieldName}' field");
-        }
-
-        [Then(@"the field (.*) must not be empty")]
-        public void ThenTheFieldMustNotBeEmpty(string fieldName)
-        {
-            var items = _scenarioContext["DataArrayItems"] as List<JsonElement>;
-            Assert.IsNotNull(items, "Data array items were not captured");
-
-            int index = 0;
-            foreach (var item in items)
-            {
-                Assert.IsTrue(item.TryGetProperty(fieldName, out var fieldValue), $"Item at index {index} is missing field '{fieldName}'");
-                
-                var fieldString = fieldValue.GetString();
-                Assert.IsNotNull(fieldString, $"Item at index {index} has null '{fieldName}'");
-                Assert.IsNotEmpty(fieldString, $"Item at index {index} has empty '{fieldName}'");
-                
-                index++;
-            }
-
-            TestContext.Progress.WriteLine($"All {items.Count} items have non-empty '{fieldName}' field");
-        }
-
-        [Then(@"all (.*) values in response (.*) must be unique")]
-        public void ThenAllValuesInResponseMustBeUnique(string fieldName, string arrayName)
-        {
-            var content = _scenarioContext["GenericResponseContent"] as string;
-            Assert.IsNotNull(content, "Response content was not captured");
-
-            using var doc = JsonDocument.Parse(content);
-            var root = doc.RootElement;
-
-            Assert.IsTrue(root.TryGetProperty(arrayName, out var dataArray), $"Response does not contain '{arrayName}' property");
-            Assert.AreEqual(JsonValueKind.Array, dataArray.ValueKind, $"'{arrayName}' is not an array");
-
-            var values = new List<string>();
-            int index = 0;
-            foreach (var item in dataArray.EnumerateArray())
-            {
-                Assert.IsTrue(item.TryGetProperty(fieldName, out var fieldValue), $"Item at index {index} is missing field '{fieldName}'");
-                var fieldString = fieldValue.GetString();
-                Assert.IsNotNull(fieldString, $"Item at index {index} has null '{fieldName}'");
-                values.Add(fieldString);
-                index++;
-            }
-
-            var duplicates = values.GroupBy(v => v).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
-            Assert.IsEmpty(duplicates, $"Found duplicate '{fieldName}' values: {string.Join(", ", duplicates)}");
-            TestContext.Progress.WriteLine($"All {values.Count} '{fieldName}' values are unique");
-        }
+        // Generic field validation steps removed to avoid ambiguity with entity-specific steps
 
         [Then(@"the response time must be less than (\d+) milliseconds")]
         public void ThenTheResponseTimeMustBeLessThanMilliseconds(int maxMs)
@@ -182,7 +59,8 @@ namespace ToIntegrations.Steps
         {
             var body = _scenarioContext["AreasBody"] as AreasResponse;
             Assert.IsNotNull(body, "Areas response body was not captured or failed to deserialize");
-            Assert.AreEqual(expectedCode, body.Code, $"Expected Code '{expectedCode}' but got '{body.Code}'");
+            var cleanExpectedCode = expectedCode.Trim('"');
+            Assert.AreEqual(cleanExpectedCode, body.Code, $"Expected Code '{cleanExpectedCode}' but got '{body.Code}'");
         }
 
         [Then(@"the Areas response body Message should be empty")]

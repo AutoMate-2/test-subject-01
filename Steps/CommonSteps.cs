@@ -6,11 +6,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Reqnroll;
-using to_integrations.CRUD.Areas;
 using to_integrations.CRUD.Cities;
 using to_integrations.CRUD.Districts;
+using to_integrations.CRUD.Hotels;
 using to_integrations.HelperMethods;
 using to_integrations.Models;
+using ToIntegrations.CRUD.Areas;
+using ToIntegrations.Models;
 
 namespace to_integrations.Steps
 {
@@ -38,8 +40,19 @@ namespace to_integrations.Steps
             TestContext.Progress.WriteLine("Using cached authentication token");
         }
 
-        [Given(@"I send a GET request to \"([^\"]*)\"")] 
+        [Given(@"I send a GET request to ""([^""]*)""")] 
         public async Task GivenISendAGETRequestTo(string endpoint)
+        {
+            await SendGetRequestToEndpoint(endpoint);
+        }
+
+        [When(@"I send a GET request to ""([^""]*)""")]
+        public async Task WhenISendAGETRequestTo(string endpoint)
+        {
+            await SendGetRequestToEndpoint(endpoint);
+        }
+
+        private async Task SendGetRequestToEndpoint(string endpoint)
         {
             if (endpoint.ToLower().Contains("areas"))
             {
@@ -68,31 +81,40 @@ namespace to_integrations.Steps
                 _scenarioContext["HttpResponse"] = response;
                 _scenarioContext["ResponseBody"] = body;
             }
+            else if (endpoint.ToLower().Contains("hotels"))
+            {
+                var (response, body, elapsedMs) = await HotelsCrud.GetHotelsWithStatusAsync();
+                _scenarioContext["HotelsResponse"] = response;
+                _scenarioContext["HotelsBody"] = body;
+                _scenarioContext["HotelsElapsedMs"] = elapsedMs;
+                _scenarioContext["HttpResponse"] = response;
+                _scenarioContext["ResponseBody"] = body;
+            }
         }
 
-        [Given(@"I store all \"([^\"]*)\" values as validAreaIds")]
+        [Given(@"I store all ""([^""]*)"" values as validAreaIds")]
         public void GivenIStoreAllValuesAsValidAreaIds(string fieldName)
         {
             var body = (AreasResponse)_scenarioContext["AreasBody"];
-            var validAreaIds = new HashSet<string>(body.Data.Select(a => a.Areaid));
+            var validAreaIds = new HashSet<string>(body.Data.Select(a => a.AreaId));
             _scenarioContext["validAreaIds"] = validAreaIds;
             TestContext.Progress.WriteLine($"Stored {validAreaIds.Count} valid area IDs");
         }
 
-        [Given(@"I store all \"([^\"]*)\" values as validCityIds")]
+        [Given(@"I store all ""([^""]*)"" values as validCityIds")]
         public void GivenIStoreAllValuesAsValidCityIds(string fieldName)
         {
             var body = (CitiesResponse)_scenarioContext["CitiesBody"];
-            var validCityIds = new HashSet<string>(body.Data.Select(c => c.Cityid));
+            var validCityIds = new HashSet<string>(body.Data.Select(c => c.CityId));
             _scenarioContext["validCityIds"] = validCityIds;
             TestContext.Progress.WriteLine($"Stored {validCityIds.Count} valid city IDs");
         }
 
-        [Given(@"I store all \"([^\"]*)\" values as validDistrictIds")]
+        [Given(@"I store all ""([^""]*)"" values as validDistrictIds")]
         public void GivenIStoreAllValuesAsValidDistrictIds(string fieldName)
         {
             var body = (DistrictsResponse)_scenarioContext["DistrictsBody"];
-            var validDistrictIds = new HashSet<string>(body.Data.Select(d => d.Districtid));
+            var validDistrictIds = new HashSet<string>(body.Data.Select(d => d.DistrictId));
             _scenarioContext["validDistrictIds"] = validDistrictIds;
             TestContext.Progress.WriteLine($"Stored {validDistrictIds.Count} valid district IDs");
         }

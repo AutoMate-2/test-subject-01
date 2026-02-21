@@ -22,18 +22,6 @@ namespace ToIntegrations.Steps
             _scenarioContext = scenarioContext;
         }
 
-        [Given(@"I have valid authentication credentials")]
-        public void GivenIHaveValidAuthenticationCredentials()
-        {
-            var agentId = AppConfig.GetValue("AgentId") ?? "username";
-            var agentPassword = AppConfig.GetValue("AgentPassword") ?? "password";
-            Assert.IsNotEmpty(agentId, "AgentId must be configured");
-            Assert.IsNotEmpty(agentPassword, "AgentPassword must be configured");
-            _scenarioContext["AgentId"] = agentId;
-            _scenarioContext["AgentPassword"] = agentPassword;
-            TestContext.Progress.WriteLine("Valid authentication credentials are available");
-        }
-
         [When(@"I send a GET request to the Cities endpoint")]
         public async Task WhenISendAGETRequestToTheCitiesEndpoint()
         {
@@ -195,34 +183,7 @@ namespace ToIntegrations.Steps
             Assert.Less(elapsedMs, maxMs, $"Expected response time < {maxMs}ms but got {elapsedMs}ms");
         }
 
-        [Given(@"I store all (.*) values as validAreaIds")]
-        public void GivenIStoreAllValuesAsValidAreaIds(string fieldName)
-        {
-            var content = _scenarioContext["GenericResponseContent"] as string;
-            Assert.IsNotNull(content, "Response content was not captured");
-
-            using var doc = JsonDocument.Parse(content);
-            var root = doc.RootElement;
-
-            Assert.IsTrue(root.TryGetProperty("Data", out var dataArray), "Response does not contain 'Data' property");
-            Assert.AreEqual(JsonValueKind.Array, dataArray.ValueKind, "'Data' is not an array");
-
-            var validAreaIds = new HashSet<string>();
-            foreach (var item in dataArray.EnumerateArray())
-            {
-                if (item.TryGetProperty(fieldName, out var fieldValue))
-                {
-                    var fieldString = fieldValue.GetString();
-                    if (!string.IsNullOrEmpty(fieldString))
-                    {
-                        validAreaIds.Add(fieldString);
-                    }
-                }
-            }
-
-            _scenarioContext["ValidAreaIds"] = validAreaIds;
-            TestContext.Progress.WriteLine($"Stored {validAreaIds.Count} valid area IDs");
-        }
+        // Removed duplicate GivenIStoreAllValuesAsValidAreaIds - moved to CommonSteps
 
         [Then(@"for each city in response (.*)")]
         public void ThenForEachCityInResponse(string arrayName)
