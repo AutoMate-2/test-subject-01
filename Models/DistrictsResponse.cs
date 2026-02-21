@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -12,20 +11,11 @@ namespace to_integrations.Models
         [JsonPropertyName("Message")]
         public string Message { get; set; }
 
-        [JsonPropertyName("Timestamp")]
-        public string Timestamp { get; set; }
-
-        [JsonPropertyName("Version")]
-        public string Version { get; set; }
-
-        [JsonPropertyName("ResponseID")]
-        public string ResponseId { get; set; }
-
         [JsonPropertyName("Data")]
-        public List<DistrictData> Data { get; set; }
+        public List<DistrictItem> Data { get; set; }
     }
 
-    public class DistrictData
+    public class DistrictItem
     {
         [JsonPropertyName("districtid")]
         public string DistrictId { get; set; }

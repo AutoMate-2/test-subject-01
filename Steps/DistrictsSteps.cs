@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Reqnroll;
@@ -19,33 +16,35 @@ namespace to_integrations.Steps
     public class DistrictsSteps
     {
         private readonly ScenarioContext _scenarioContext;
-        private DistrictsResponse _districtsResponse;
-        private CitiesResponse _citiesResponse;
-        private HttpResponseMessage _httpResponse;
-        private long _responseTimeMs;
-        private string _agentId;
-        private string _agentPassword;
-        private List<string> _validCityIds;
 
         public DistrictsSteps(ScenarioContext scenarioContext)
         {
             _scenarioContext = scenarioContext;
-            _validCityIds = new List<string>();
         }
 
         [Given(@"I retrieve all valid city IDs from the Cities endpoint")]
         public async Task GivenIRetrieveAllValidCityIDsFromTheCitiesEndpoint()
         {
+<<<<<<< HEAD
             _agentId = DistrictsPresetup.ValidAgentId;
             _agentPassword = DistrictsPresetup.ValidAgentPassword;
             
             var citiesCrud = new CitiesCrud();
+<<<<<<< HEAD
             var (citiesResponse, statusCode) = await citiesCrud.GetCitiesWithStatusAsync();
             
             Assert.IsTrue((int)statusCode >= 200 && (int)statusCode < 300, 
                 $"Failed to retrieve cities. Status: {statusCode}");
             
             _citiesResponse = citiesResponse;
+=======
+            var result = await citiesCrud.GetCitiesWithStatusAsync();
+            
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode, 
+                $"Failed to retrieve cities. Status: {result.StatusCode}");
+            
+            _citiesResponse = result.Response;
+>>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
             
             Assert.IsNotNull(_citiesResponse?.Data, "Cities response data should not be null");
             
@@ -53,174 +52,163 @@ namespace to_integrations.Steps
             
             TestContext.Progress.WriteLine($"Retrieved {_validCityIds.Count} valid city IDs");
             _scenarioContext["ValidCityIds"] = _validCityIds;
+=======
+            var (response, body, elapsedMs) = await CitiesCrud.GetCitiesWithStatusAsync();
+            Assert.AreEqual(200, (int)response.StatusCode, "Expected 200 OK from Cities API");
+            Assert.IsNotNull(body.Data, "Cities Data array should exist");
+
+            var validCityIds = body.Data.Select(c => c.CityId).ToHashSet();
+            _scenarioContext["ValidCityIds"] = validCityIds;
+            TestContext.Progress.WriteLine($"Retrieved {validCityIds.Count} valid city IDs.");
+        }
+
+        [Given(@"the API returns a successful Districts response")]
+        public async Task GivenTheAPIReturnsASuccessfulDistrictsResponse()
+        {
+            var (response, body, elapsedMs) = await DistrictsCrud.GetDistrictsWithStatusAsync();
+            _scenarioContext["DistrictsHttpResponse"] = response;
+            _scenarioContext["DistrictsResponseBody"] = body;
+            _scenarioContext["DistrictsElapsedMs"] = elapsedMs;
+            Assert.AreEqual(200, (int)response.StatusCode, "Expected 200 OK from Districts API");
+            TestContext.Progress.WriteLine($"Districts API returned 200 OK in {elapsedMs}ms.");
+        }
+
+        [Given(@"the API returns a list of districts")]
+        public async Task GivenTheAPIReturnsAListOfDistricts()
+        {
+            var (response, body, elapsedMs) = await DistrictsCrud.GetDistrictsWithStatusAsync();
+            _scenarioContext["DistrictsHttpResponse"] = response;
+            _scenarioContext["DistrictsResponseBody"] = body;
+            _scenarioContext["DistrictsElapsedMs"] = elapsedMs;
+            Assert.AreEqual(200, (int)response.StatusCode, "Expected 200 OK from Districts API");
+            Assert.IsNotNull(body.Data, "Districts Data array should exist");
+            Assert.Greater(body.Data.Count, 0, "Districts list should not be empty");
+            TestContext.Progress.WriteLine($"Districts API returned {body.Data.Count} districts in {elapsedMs}ms.");
+>>>>>>> ca0b864a037c063f4f0ffcb95fc6b5dcb30b07f2
         }
 
         [When(@"I send a GET request to the Districts endpoint")]
         public async Task WhenISendAGETRequestToTheDistrictsEndpoint()
         {
-            if (string.IsNullOrEmpty(_agentId))
-            {
-                _agentId = DistrictsPresetup.ValidAgentId;
-                _agentPassword = DistrictsPresetup.ValidAgentPassword;
-            }
-            
-            var districtsCrud = new DistrictsCrud();
-            var stopwatch = Stopwatch.StartNew();
-            
-            _httpResponse = await districtsCrud.GetDistrictsAsync(_agentId, _agentPassword);
-            
-            stopwatch.Stop();
-            _responseTimeMs = stopwatch.ElapsedMilliseconds;
-            
-            var content = await _httpResponse.Content.ReadAsStringAsync();
-            TestContext.Progress.WriteLine($"Response received in {_responseTimeMs}ms");
-            TestContext.Progress.WriteLine($"Response content: {content}");
-            
-            if (_httpResponse.IsSuccessStatusCode)
-            {
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-                _districtsResponse = JsonSerializer.Deserialize<DistrictsResponse>(content, options);
-            }
-            
-            _scenarioContext["HttpResponse"] = _httpResponse;
-            _scenarioContext["DistrictsResponse"] = _districtsResponse;
-            _scenarioContext["ResponseTimeMs"] = _responseTimeMs;
+            var (response, body, elapsedMs) = await DistrictsCrud.GetDistrictsWithStatusAsync();
+            _scenarioContext["DistrictsHttpResponse"] = response;
+            _scenarioContext["DistrictsResponseBody"] = body;
+            _scenarioContext["DistrictsElapsedMs"] = elapsedMs;
+            TestContext.Progress.WriteLine($"Districts API responded in {elapsedMs}ms with status {(int)response.StatusCode}");
+        }
+
+        [When(@"I inspect each item in the Districts Data array")]
+        public void WhenIInspectEachItemInTheDistrictsDataArray()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            Assert.IsNotNull(body.Data, "Districts Data array should exist");
+            Assert.Greater(body.Data.Count, 0, "Districts Data array should not be empty");
+            TestContext.Progress.WriteLine($"Inspecting {body.Data.Count} district items.");
+        }
+
+        [When(@"I collect all districtid values")]
+        public void WhenICollectAllDistrictidValues()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            var districtIds = body.Data.Select(d => d.DistrictId).ToList();
+            _scenarioContext["DistrictIds"] = districtIds;
+            TestContext.Progress.WriteLine($"Collected {districtIds.Count} districtid values.");
+        }
+
+        [Then(@"the Districts response status code should be (\d+)")]
+        public void ThenTheDistrictsResponseStatusCodeShouldBe(int expectedStatusCode)
+        {
+            var response = (HttpResponseMessage)_scenarioContext["DistrictsHttpResponse"];
+            Assert.AreEqual(expectedStatusCode, (int)response.StatusCode, $"Expected status code {expectedStatusCode} but got {(int)response.StatusCode}");
+        }
+
+        [Then(@"the Districts response body Code should be \"(.*)\"$")]
+        public void ThenTheDistrictsResponseBodyCodeShouldBe(string expectedCode)
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            Assert.IsNotNull(body, "Response body should not be null");
+            Assert.AreEqual(expectedCode, body.Code, $"Expected Code '{expectedCode}' but got '{body.Code}'");
+        }
+
+        [Then(@"the Districts response body Message should be empty")]
+        public void ThenTheDistrictsResponseBodyMessageShouldBeEmpty()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            Assert.IsTrue(string.IsNullOrEmpty(body.Message), $"Expected empty Message but got '{body.Message}'");
+        }
+
+        [Then(@"the Districts response Data array should exist")]
+        public void ThenTheDistrictsResponseDataArrayShouldExist()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            Assert.IsNotNull(body, "Response body should not be null");
+            Assert.IsNotNull(body.Data, "Districts Data array should exist in the response");
+            TestContext.Progress.WriteLine("Districts Data array exists.");
         }
 
         [Then(@"the Districts Data array length should be greater than (\d+)")]
-        public void ThenTheDistrictsDataArrayLengthShouldBeGreaterThan(int minLength)
+        public void ThenTheDistrictsDataArrayLengthShouldBeGreaterThan(int minCount)
         {
-            Assert.IsNotNull(_districtsResponse, "Response should not be null");
-            Assert.IsNotNull(_districtsResponse.Data, "Data array should not be null");
-            Assert.Greater(_districtsResponse.Data.Count, minLength, 
-                $"Expected Data array length greater than {minLength} but got {_districtsResponse.Data.Count}");
-        }
-
-        [Then(@"each item in the Districts Data array should contain a districtid")]
-        public void ThenEachItemInTheDistrictsDataArrayShouldContainADistrictid()
-        {
-            Assert.IsNotNull(_districtsResponse?.Data, "Data array should not be null");
-            
-            for (int i = 0; i < _districtsResponse.Data.Count; i++)
-            {
-                var district = _districtsResponse.Data[i];
-                Assert.IsNotNull(district.DistrictId, $"District at index {i} should have a districtid");
-                Assert.IsFalse(string.IsNullOrWhiteSpace(district.DistrictId), 
-                    $"District at index {i} should have a non-empty districtid");
-            }
-        }
-
-        [Then(@"each districtid should be a valid GUID")]
-        public void ThenEachDistrictidShouldBeAValidGUID()
-        {
-            Assert.IsNotNull(_districtsResponse?.Data, "Data array should not be null");
-            
-            for (int i = 0; i < _districtsResponse.Data.Count; i++)
-            {
-                var district = _districtsResponse.Data[i];
-                bool isValidGuid = Guid.TryParse(district.DistrictId, out _);
-                Assert.IsTrue(isValidGuid, 
-                    $"District at index {i} has invalid GUID format for districtid: '{district.DistrictId}'");
-            }
-        }
-
-        [Then(@"each item in the Districts Data array should contain a districtname")]
-        public void ThenEachItemInTheDistrictsDataArrayShouldContainADistrictname()
-        {
-            Assert.IsNotNull(_districtsResponse?.Data, "Data array should not be null");
-            
-            for (int i = 0; i < _districtsResponse.Data.Count; i++)
-            {
-                var district = _districtsResponse.Data[i];
-                Assert.IsNotNull(district.DistrictName, 
-                    $"District at index {i} should have a districtname property");
-            }
-        }
-
-        [Then(@"each districtname should be a non-empty string")]
-        public void ThenEachDistrictnameShouldBeANonEmptyString()
-        {
-            Assert.IsNotNull(_districtsResponse?.Data, "Data array should not be null");
-            
-            for (int i = 0; i < _districtsResponse.Data.Count; i++)
-            {
-                var district = _districtsResponse.Data[i];
-                Assert.IsFalse(string.IsNullOrWhiteSpace(district.DistrictName), 
-                    $"District at index {i} should have a non-empty districtname, but got '{district.DistrictName}'");
-            }
-        }
-
-        [Then(@"each item in the Districts Data array should contain a cityid")]
-        public void ThenEachItemInTheDistrictsDataArrayShouldContainACityid()
-        {
-            Assert.IsNotNull(_districtsResponse?.Data, "Data array should not be null");
-            
-            for (int i = 0; i < _districtsResponse.Data.Count; i++)
-            {
-                var district = _districtsResponse.Data[i];
-                Assert.IsNotNull(district.CityId, $"District at index {i} should have a cityid");
-                Assert.IsFalse(string.IsNullOrWhiteSpace(district.CityId), 
-                    $"District at index {i} should have a non-empty cityid");
-            }
-        }
-
-        [Then(@"each district cityid should be a valid GUID")]
-        public void ThenEachDistrictCityidShouldBeAValidGUID()
-        {
-            Assert.IsNotNull(_districtsResponse?.Data, "Data array should not be null");
-            
-            for (int i = 0; i < _districtsResponse.Data.Count; i++)
-            {
-                var district = _districtsResponse.Data[i];
-                bool isValidGuid = Guid.TryParse(district.CityId, out _);
-                Assert.IsTrue(isValidGuid, 
-                    $"District at index {i} has invalid GUID format for cityid: '{district.CityId}'");
-            }
-        }
-
-        [Then(@"there should be no duplicate districtid values")]
-        public void ThenThereShouldBeNoDuplicateDistrictidValues()
-        {
-            Assert.IsNotNull(_districtsResponse?.Data, "Data array should not be null");
-            
-            var districtIds = _districtsResponse.Data.Select(d => d.DistrictId).ToList();
-            var duplicates = districtIds.GroupBy(id => id)
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key)
-                .ToList();
-            
-            Assert.IsEmpty(duplicates, 
-                $"Found duplicate districtid values: {string.Join(", ", duplicates)}");
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            Assert.IsNotNull(body.Data, "Districts Data array should exist");
+            Assert.Greater(body.Data.Count, minCount, $"Expected Districts Data array length greater than {minCount} but got {body.Data.Count}");
+            TestContext.Progress.WriteLine($"Districts Data array contains {body.Data.Count} items.");
         }
 
         [Then(@"every district cityid should exist in the valid city IDs list")]
         public void ThenEveryDistrictCityidShouldExistInTheValidCityIDsList()
         {
-            Assert.IsNotNull(_districtsResponse?.Data, "Districts data should not be null");
-            
-            if (_scenarioContext.ContainsKey("ValidCityIds"))
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            var validCityIds = (HashSet<string>)_scenarioContext["ValidCityIds"];
+
+            Assert.IsNotNull(body.Data, "Districts Data array should exist");
+            Assert.Greater(body.Data.Count, 0, "Districts list should not be empty");
+
+            var invalidDistricts = body.Data
+                .Where(d => !validCityIds.Contains(d.CityId))
+                .ToList();
+
+            Assert.IsEmpty(invalidDistricts,
+                $"Found {invalidDistricts.Count} districts with cityid not in Cities list: " +
+                string.Join(", ", invalidDistricts.Select(d => $"districtid={d.DistrictId}, cityid={d.CityId}")));
+        }
+
+        [Then(@"each item should contain a districtid")]
+        public void ThenEachItemShouldContainADistrictid()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            foreach (var district in body.Data)
             {
-                _validCityIds = (List<string>)_scenarioContext["ValidCityIds"];
+                Assert.IsNotNull(district.DistrictId, "Each district item should contain a districtid");
+                Assert.IsNotEmpty(district.DistrictId, "districtid should not be empty");
             }
-            
-            Assert.IsNotNull(_validCityIds, "Valid city IDs list should not be null");
-            Assert.IsNotEmpty(_validCityIds, "Valid city IDs list should not be empty");
-            
-            var orphanDistricts = new List<string>();
-            
-            foreach (var district in _districtsResponse.Data)
+            TestContext.Progress.WriteLine("All district items contain a districtid.");
+        }
+
+        [Then(@"each item in the Districts Data array should contain a districtid")]
+        public void ThenEachItemInTheDistrictsDataArrayShouldContainADistrictid()
+        {
+            ThenEachItemShouldContainADistrictid();
+        }
+
+        [Then(@"each districtid should be a valid GUID")]
+        public void ThenEachDistrictidShouldBeAValidGUID()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            foreach (var district in body.Data)
             {
-                if (!_validCityIds.Contains(district.CityId))
-                {
-                    orphanDistricts.Add($"District '{district.DistrictName}' (id: {district.DistrictId}) has cityid '{district.CityId}' which does not exist in Cities");
-                }
+                Assert.IsTrue(Guid.TryParse(district.DistrictId, out _), $"districtid '{district.DistrictId}' is not a valid GUID");
             }
-            
-            if (orphanDistricts.Any())
+            TestContext.Progress.WriteLine("All districtid values are valid GUIDs.");
+        }
+
+        [Then(@"each item should contain a districtname")]
+        public void ThenEachItemShouldContainADistrictname()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            foreach (var district in body.Data)
             {
+<<<<<<< HEAD
                 TestContext.Progress.WriteLine("Orphan districts found:");
                 foreach (var orphan in orphanDistricts)
                 {
@@ -234,6 +222,77 @@ namespace to_integrations.Steps
             Assert.IsTrue(orphanDistricts.Count < _districtsResponse.Data.Count, 
                 $"All {orphanDistricts.Count} districts have cityid values not found in Cities - this indicates a systemic issue");
             TestContext.Progress.WriteLine($"Referential integrity check: {_districtsResponse.Data.Count - orphanDistricts.Count} of {_districtsResponse.Data.Count} districts have valid city references");
+=======
+                Assert.IsNotNull(district.DistrictName, "Each district item should contain a districtname");
+            }
+            TestContext.Progress.WriteLine("All district items contain a districtname.");
+        }
+
+        [Then(@"each item in the Districts Data array should contain a districtname")]
+        public void ThenEachItemInTheDistrictsDataArrayShouldContainADistrictname()
+        {
+            ThenEachItemShouldContainADistrictname();
+        }
+
+        [Then(@"each districtname should be a non-empty string")]
+        public void ThenEachDistrictnameShouldBeANonEmptyString()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            foreach (var district in body.Data)
+            {
+                Assert.IsNotEmpty(district.DistrictName, "districtname should be a non-empty string");
+            }
+            TestContext.Progress.WriteLine("All districtname values are non-empty strings.");
+        }
+
+        [Then(@"each item should contain a cityid")]
+        public void ThenEachItemShouldContainACityid()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            foreach (var district in body.Data)
+            {
+                Assert.IsNotNull(district.CityId, "Each district item should contain a cityid");
+                Assert.IsNotEmpty(district.CityId, "district cityid should not be empty");
+            }
+            TestContext.Progress.WriteLine("All district items contain a cityid.");
+        }
+
+        [Then(@"each item in the Districts Data array should contain a cityid")]
+        public void ThenEachItemInTheDistrictsDataArrayShouldContainACityid()
+        {
+            ThenEachItemShouldContainACityid();
+        }
+
+        [Then(@"each district cityid should be a valid GUID")]
+        public void ThenEachDistrictCityidShouldBeAValidGUID()
+        {
+            var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
+            foreach (var district in body.Data)
+            {
+                Assert.IsTrue(Guid.TryParse(district.CityId, out _), $"district cityid '{district.CityId}' is not a valid GUID");
+            }
+            TestContext.Progress.WriteLine("All district cityid values are valid GUIDs.");
+        }
+
+        [Then(@"there should be no duplicate districtid values")]
+        public void ThenThereShouldBeNoDuplicateDistrictidValues()
+        {
+            var districtIds = _scenarioContext.ContainsKey("DistrictIds")
+                ? (List<string>)_scenarioContext["DistrictIds"]
+                : ((DistrictsResponse)_scenarioContext["DistrictsResponseBody"]).Data.Select(d => d.DistrictId).ToList();
+
+            var duplicates = districtIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            Assert.IsEmpty(duplicates, $"Found duplicate districtid values: {string.Join(", ", duplicates)}");
+            TestContext.Progress.WriteLine($"Verified {districtIds.Count} districtid values have no duplicates.");
+        }
+
+        [Then(@"the Districts API response time should be less than (\d+) milliseconds")]
+        public void ThenTheDistrictsAPIResponseTimeShouldBeLessThanMilliseconds(int maxMs)
+        {
+            var elapsedMs = (long)_scenarioContext["DistrictsElapsedMs"];
+            TestContext.Progress.WriteLine($"Districts API response time: {elapsedMs}ms (threshold: {maxMs}ms)");
+            Assert.Less(elapsedMs, maxMs, $"Districts API response time {elapsedMs}ms exceeded {maxMs}ms threshold");
+>>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
         }
     }
 }
