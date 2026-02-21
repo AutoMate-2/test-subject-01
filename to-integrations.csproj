@@ -12,16 +12,10 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
-<<<<<<< HEAD
-    <PackageReference Include="Reqnroll" Version="2.3.0" />
-    <PackageReference Include="Reqnroll.NUnit" Version="2.3.0" />
-    <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="2.3.0" />
-=======
-    <PackageReference Include="Reqnroll" Version="3.3.3" />
-    <PackageReference Include="Reqnroll.NUnit" Version="3.3.3" />
-    <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.3" />
-    <PackageReference Include="System.Text.Json" Version="9.0.3" />
->>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
+  <PackageReference Include="Reqnroll" Version="3.3.3" />
+  <PackageReference Include="Reqnroll.NUnit" Version="3.3.3" />
+  <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.3" />
+  <PackageReference Include="System.Text.Json" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>

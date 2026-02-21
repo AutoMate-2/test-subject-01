@@ -1,20 +1,12 @@
-<<<<<<< HEAD
-using NUnit.Framework;
-using Reqnroll;
-=======
 using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
-<<<<<<< HEAD
 using Reqnroll;
 using to_integrations.CRUD.Cities;
-=======
-using TechTalk.SpecFlow;
->>>>>>> ca0b864a037c063f4f0ffcb95fc6b5dcb30b07f2
->>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
+using to_integrations.HelperMethods;
 using to_integrations.HelperMethods;
 
 namespace to_integrations.Config
@@ -23,40 +15,18 @@ namespace to_integrations.Config
     public class SpecFlowHooks
     {
         [BeforeTestRun]
-        public static void BeforeTestRun()
+        public static async Task BeforeTestRun()
         {
             AppConfig.Load("Atata.test.json");
             ToIntegrationsEnvironment.Initialize();
-<<<<<<< HEAD
             TestContext.Progress.WriteLine($"Base URL: {ToIntegrationsEnvironment.BaseUrl}");
-
-<<<<<<< HEAD
             // Verify API connectivity by making a test call with configured credentials
-            var citiesCrud = new CitiesCrud();
-            var result = await citiesCrud.GetCitiesWithStatusAsync();
-            Assert.IsTrue((int)result.StatusCode >= 200 && (int)result.StatusCode < 300,
-                $"API connectivity check failed with status {result.StatusCode}");
-            
+            var result = await CitiesCrud.GetCitiesWithStatusAsync();
+            Assert.IsTrue((int)result.Response.StatusCode >= 200 && (int)result.Response.StatusCode < 300,
+                $"API connectivity check failed with status {result.Response.StatusCode}");
             // Mark credentials as validated
             TokenCache.CachedToken = "valid";
             TestContext.Progress.WriteLine("API connectivity verified, credentials are valid");
-=======
-            var agentId = AppConfig.GetValue("AgentId");
-            var agentPassword = AppConfig.GetValue("AgentPassword");
-            if (!string.IsNullOrEmpty(agentId) && !string.IsNullOrEmpty(agentPassword))
-            {
-                TokenCache.CachedToken = "agent-credentials-configured";
-                TestContext.Progress.WriteLine($"Agent credentials loaded: {agentId}");
-            }
-            else
-            {
-                TestContext.Progress.WriteLine("Warning: Agent credentials not configured in Atata.test.json");
-            }
-=======
-            await CacheAuthenticationTokenAsync();
-            TestContext.Progress.WriteLine("Test run initialized. Base URL: " + ToIntegrationsEnvironment.BaseUrl);
->>>>>>> ca0b864a037c063f4f0ffcb95fc6b5dcb30b07f2
->>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
         }
 
         [BeforeScenario]

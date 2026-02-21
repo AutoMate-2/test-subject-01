@@ -23,7 +23,7 @@ Feature: Cities API
   Scenario: Each city has valid structure
     Given the API returns a successful response
     When I inspect each item in the Data array
-    Then each item should contain a cityid
+    Then each city item should contain a cityid
     And each cityid should be a valid GUID
     And each item should contain a cityname
     And each cityname should be a non-empty string

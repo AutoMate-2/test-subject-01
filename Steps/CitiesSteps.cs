@@ -24,57 +24,13 @@ namespace to_integrations.Steps
         [Given(@"I have valid authentication credentials")]
         public void GivenIHaveValidAuthenticationCredentials()
         {
-<<<<<<< HEAD
             var agentId = AppConfig.GetValue("AgentId");
             var agentPassword = AppConfig.GetValue("AgentPassword");
             Assert.IsNotNull(agentId, "AgentId should be configured");
             Assert.IsFalse(string.IsNullOrEmpty(agentId), "AgentId should not be empty");
             Assert.IsNotNull(agentPassword, "AgentPassword should be configured");
             Assert.IsFalse(string.IsNullOrEmpty(agentPassword), "AgentPassword should not be empty");
-            TestContext.Progress.WriteLine("Valid authentication credentials confirmed");
-        }
-
-        [Given(@"the API returns a successful response")]
-        public async Task GivenTheAPIReturnsASuccessfulResponse()
-        {
-            var citiesCrud = new CitiesCrud();
-            var stopwatch = Stopwatch.StartNew();
-            var result = await citiesCrud.GetCitiesWithStatusAsync();
-            stopwatch.Stop();
-            _response = result.Response;
-            _statusCode = result.StatusCode;
-            _responseTimeMs = stopwatch.ElapsedMilliseconds;
-            _scenarioContext["CitiesResponse"] = _response;
-            _scenarioContext["ResponseTimeMs"] = _responseTimeMs;
-            _scenarioContext["StatusCode"] = _statusCode;
-            
-            Assert.IsNotNull(_response, "API response should not be null");
-            Assert.IsNotNull(_response.Data, "API response Data should not be null");
-            TestContext.Progress.WriteLine($"Cities endpoint responded successfully in {_responseTimeMs}ms with {_response.Data.Count} items");
-        }
-
-        [Given(@"the API returns a list of cities")]
-        public async Task GivenTheAPIReturnsAListOfCities()
-        {
-            var citiesCrud = new CitiesCrud();
-            var stopwatch = Stopwatch.StartNew();
-            var result = await citiesCrud.GetCitiesWithStatusAsync();
-            stopwatch.Stop();
-            _response = result.Response;
-            _statusCode = result.StatusCode;
-            _responseTimeMs = stopwatch.ElapsedMilliseconds;
-            _scenarioContext["CitiesResponse"] = _response;
-            _scenarioContext["ResponseTimeMs"] = _responseTimeMs;
-            _scenarioContext["StatusCode"] = _statusCode;
-            
-            Assert.IsNotNull(_response, "API response should not be null");
-            Assert.IsNotNull(_response.Data, "API response Data should not be null");
-            Assert.Greater(_response.Data.Count, 0, "API should return at least one city");
-            TestContext.Progress.WriteLine($"Cities endpoint returned {_response.Data.Count} cities in {_responseTimeMs}ms");
-=======
-            Assert.IsNotNull(TokenCache.CachedToken, "Authentication token should be cached");
             TestContext.Progress.WriteLine("Valid authentication credentials confirmed.");
->>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
         }
 
         [When(@"I send a GET request to the Cities endpoint")]
@@ -94,15 +50,7 @@ namespace to_integrations.Steps
             Assert.AreEqual(expectedStatusCode, (int)response.StatusCode, $"Expected status code {expectedStatusCode} but got {(int)response.StatusCode}");
         }
 
-<<<<<<< HEAD
-        [Then(@"the response body Code should be ""(.*)""")]
-=======
-<<<<<<< HEAD
-        [Then(@"the response body Code should be ""(.*)""")]
-=======
-        [Then(@"the response body Code should be ""(.*)""$")]
->>>>>>> ca0b864a037c063f4f0ffcb95fc6b5dcb30b07f2
->>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
+        [Then(@"the response body Code should be ""(.*)""|the response body Code should be '(.*)'")]
         public void ThenTheResponseBodyCodeShouldBe(string expectedCode)
         {
             var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
@@ -150,8 +98,8 @@ namespace to_integrations.Steps
             TestContext.Progress.WriteLine($"Inspecting {body.Data.Count} city items.");
         }
 
-        [Then(@"each item should contain a cityid")]
-        public void ThenEachItemShouldContainACityid()
+        [Then(@"each city item should contain a cityid")]
+        public void ThenEachCityItemShouldContainACityid()
         {
             var body = (CitiesResponse)_scenarioContext["CitiesResponseBody"];
             foreach (var city in body.Data)
@@ -164,7 +112,7 @@ namespace to_integrations.Steps
         [Then(@"each item in the Data array should contain a cityid")]
         public void ThenEachItemInTheDataArrayShouldContainACityid()
         {
-            ThenEachItemShouldContainACityid();
+            ThenEachCityItemShouldContainACityid();
         }
 
         [Then(@"each cityid should be a valid GUID")]

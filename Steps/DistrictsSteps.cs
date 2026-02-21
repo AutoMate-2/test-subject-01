@@ -25,40 +25,13 @@ namespace to_integrations.Steps
         [Given(@"I retrieve all valid city IDs from the Cities endpoint")]
         public async Task GivenIRetrieveAllValidCityIDsFromTheCitiesEndpoint()
         {
-<<<<<<< HEAD
-            _agentId = DistrictsPresetup.ValidAgentId;
-            _agentPassword = DistrictsPresetup.ValidAgentPassword;
-            
-            var citiesCrud = new CitiesCrud();
-<<<<<<< HEAD
-            var (citiesResponse, statusCode) = await citiesCrud.GetCitiesWithStatusAsync();
-            
-            Assert.IsTrue((int)statusCode >= 200 && (int)statusCode < 300, 
-                $"Failed to retrieve cities. Status: {statusCode}");
-            
-            _citiesResponse = citiesResponse;
-=======
-            var result = await citiesCrud.GetCitiesWithStatusAsync();
-            
-            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode, 
-                $"Failed to retrieve cities. Status: {result.StatusCode}");
-            
-            _citiesResponse = result.Response;
->>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
-            
-            Assert.IsNotNull(_citiesResponse?.Data, "Cities response data should not be null");
-            
-            _validCityIds = _citiesResponse.Data.Select(c => c.CityId).ToList();
-            
-            TestContext.Progress.WriteLine($"Retrieved {_validCityIds.Count} valid city IDs");
-            _scenarioContext["ValidCityIds"] = _validCityIds;
-=======
             var (response, body, elapsedMs) = await CitiesCrud.GetCitiesWithStatusAsync();
             Assert.AreEqual(200, (int)response.StatusCode, "Expected 200 OK from Cities API");
             Assert.IsNotNull(body.Data, "Cities Data array should exist");
-
             var validCityIds = body.Data.Select(c => c.CityId).ToHashSet();
             _scenarioContext["ValidCityIds"] = validCityIds;
+            TestContext.Progress.WriteLine($"Retrieved {validCityIds.Count} valid city IDs.");
+            // ...existing code...
             TestContext.Progress.WriteLine($"Retrieved {validCityIds.Count} valid city IDs.");
         }
 
@@ -84,7 +57,6 @@ namespace to_integrations.Steps
             Assert.IsNotNull(body.Data, "Districts Data array should exist");
             Assert.Greater(body.Data.Count, 0, "Districts list should not be empty");
             TestContext.Progress.WriteLine($"Districts API returned {body.Data.Count} districts in {elapsedMs}ms.");
->>>>>>> ca0b864a037c063f4f0ffcb95fc6b5dcb30b07f2
         }
 
         [When(@"I send a GET request to the Districts endpoint")]
@@ -122,7 +94,7 @@ namespace to_integrations.Steps
             Assert.AreEqual(expectedStatusCode, (int)response.StatusCode, $"Expected status code {expectedStatusCode} but got {(int)response.StatusCode}");
         }
 
-        [Then(@"the Districts response body Code should be \"(.*)\"$")]
+        [Then(@"the Districts response body Code should be '(.*)'")]
         public void ThenTheDistrictsResponseBodyCodeShouldBe(string expectedCode)
         {
             var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
@@ -208,26 +180,10 @@ namespace to_integrations.Steps
             var body = (DistrictsResponse)_scenarioContext["DistrictsResponseBody"];
             foreach (var district in body.Data)
             {
-<<<<<<< HEAD
-                TestContext.Progress.WriteLine("Orphan districts found:");
-                foreach (var orphan in orphanDistricts)
-                {
-                    TestContext.Progress.WriteLine($"  - {orphan}");
-                }
-                TestContext.Progress.WriteLine($"Note: {orphanDistricts.Count} district(s) reference city IDs not present in the Cities endpoint. " +
-                    $"This may indicate the Cities endpoint returns a filtered subset of all cities.");
-            }
-            
-            // Log the mismatch count but only fail if ALL districts are orphaned (indicating a real problem)
-            Assert.IsTrue(orphanDistricts.Count < _districtsResponse.Data.Count, 
-                $"All {orphanDistricts.Count} districts have cityid values not found in Cities - this indicates a systemic issue");
-            TestContext.Progress.WriteLine($"Referential integrity check: {_districtsResponse.Data.Count - orphanDistricts.Count} of {_districtsResponse.Data.Count} districts have valid city references");
-=======
                 Assert.IsNotNull(district.DistrictName, "Each district item should contain a districtname");
             }
             TestContext.Progress.WriteLine("All district items contain a districtname.");
         }
-
         [Then(@"each item in the Districts Data array should contain a districtname")]
         public void ThenEachItemInTheDistrictsDataArrayShouldContainADistrictname()
         {
@@ -292,7 +248,6 @@ namespace to_integrations.Steps
             var elapsedMs = (long)_scenarioContext["DistrictsElapsedMs"];
             TestContext.Progress.WriteLine($"Districts API response time: {elapsedMs}ms (threshold: {maxMs}ms)");
             Assert.Less(elapsedMs, maxMs, $"Districts API response time {elapsedMs}ms exceeded {maxMs}ms threshold");
->>>>>>> fe59efb2efbd46ad04271a7b350e0108db3311ef
         }
     }
 }
