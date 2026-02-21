@@ -11,15 +11,6 @@ namespace to_integrations.Models
         [JsonPropertyName("Message")]
         public string Message { get; set; }
 
-        [JsonPropertyName("Timestamp")]
-        public string Timestamp { get; set; }
-
-        [JsonPropertyName("Version")]
-        public string Version { get; set; }
-
-        [JsonPropertyName("ResponseID")]
-        public string ResponseId { get; set; }
-
         [JsonPropertyName("Data")]
         public List<CityItem> Data { get; set; }
     }
@@ -31,8 +22,5 @@ namespace to_integrations.Models
 
         [JsonPropertyName("cityname")]
         public string CityName { get; set; }
-
-        [JsonPropertyName("areaid")]
-        public string AreaId { get; set; }
     }
 }
