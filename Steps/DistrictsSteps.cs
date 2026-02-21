@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using TechTalk.SpecFlow;
+using Reqnroll;
 using to_integrations.CRUD.Cities;
 using to_integrations.CRUD.Districts;
 using to_integrations.HelperMethods;
@@ -40,17 +40,12 @@ namespace to_integrations.Steps
             _agentPassword = DistrictsPresetup.ValidAgentPassword;
             
             var citiesCrud = new CitiesCrud();
-            var citiesHttpResponse = await citiesCrud.GetCitiesAsync(_agentId, _agentPassword);
+            var result = await citiesCrud.GetCitiesWithStatusAsync();
             
-            Assert.IsTrue(citiesHttpResponse.IsSuccessStatusCode, 
-                $"Failed to retrieve cities. Status: {citiesHttpResponse.StatusCode}");
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode, 
+                $"Failed to retrieve cities. Status: {result.StatusCode}");
             
-            var content = await citiesHttpResponse.Content.ReadAsStringAsync();
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            _citiesResponse = JsonSerializer.Deserialize<CitiesResponse>(content, options);
+            _citiesResponse = result.Response;
             
             Assert.IsNotNull(_citiesResponse?.Data, "Cities response data should not be null");
             

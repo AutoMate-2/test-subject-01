@@ -1,7 +1,5 @@
-using System.Threading.Tasks;
 using NUnit.Framework;
-using TechTalk.SpecFlow;
-using to_integrations.CRUD.Auth;
+using Reqnroll;
 using to_integrations.HelperMethods;
 
 namespace to_integrations.Config
@@ -10,15 +8,23 @@ namespace to_integrations.Config
     public class SpecFlowHooks
     {
         [BeforeTestRun]
-        public static async Task BeforeTestRun()
+        public static void BeforeTestRun()
         {
             AppConfig.Load("Atata.test.json");
             ToIntegrationsEnvironment.Initialize();
             TestContext.Progress.WriteLine($"Base URL: {ToIntegrationsEnvironment.BaseUrl}");
 
-            var authCrud = new AuthCrud();
-            TokenCache.CachedToken = await authCrud.LoginAsync();
-            TestContext.Progress.WriteLine("Authentication completed, token cached");
+            var agentId = AppConfig.GetValue("AgentId");
+            var agentPassword = AppConfig.GetValue("AgentPassword");
+            if (!string.IsNullOrEmpty(agentId) && !string.IsNullOrEmpty(agentPassword))
+            {
+                TokenCache.CachedToken = "agent-credentials-configured";
+                TestContext.Progress.WriteLine($"Agent credentials loaded: {agentId}");
+            }
+            else
+            {
+                TestContext.Progress.WriteLine("Warning: Agent credentials not configured in Atata.test.json");
+            }
         }
 
         [BeforeScenario]

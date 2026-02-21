@@ -8,7 +8,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using TechTalk.SpecFlow;
+using Reqnroll;
 using to_integrations.CRUD.Cities;
 using to_integrations.HelperMethods;
 using to_integrations.Models;
@@ -136,7 +136,7 @@ namespace to_integrations.Steps
             TestContext.Progress.WriteLine($"Response status code is {actualStatusCode} as expected");
         }
 
-        [Then(@"the response body Code should be \"(.*)\"")]
+        [Then(@"the response body Code should be ""(.*)""")]
         public void ThenTheResponseBodyCodeShouldBe(string expectedCode)
         {
             if (_response == null && _scenarioContext.ContainsKey("CitiesResponse"))
