@@ -1,31 +1,38 @@
 using System;
+using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using to_integrations.HelperMethods;
+using to_integrations.Models;
 
 namespace to_integrations.CRUD.Districts
 {
-    public class DistrictsCrud
+    public static class DistrictsCrud
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _baseUrl;
-
-        public DistrictsCrud()
+        public static async Task<(HttpResponseMessage Response, DistrictsResponse Body, long ElapsedMs)> GetDistrictsWithStatusAsync()
         {
-            _httpClient = new HttpClient();
-            _baseUrl = ToIntegrationsEnvironment.BaseUrl;
-        }
+            using var client = new HttpClient();
+            client.BaseAddress = new Uri(ToIntegrationsEnvironment.BaseUrl);
 
-        public async Task<HttpResponseMessage> GetDistrictsAsync(string agentId, string agentPassword)
-        {
-            var requestUrl = $"{_baseUrl}/v3.00/api/Districts?agentid={Uri.EscapeDataString(agentId)}&agentpassword={Uri.EscapeDataString(agentPassword)}";
-            
-            TestContext.Progress.WriteLine($"Sending GET request to: {requestUrl}");
-            
-            var response = await _httpClient.GetAsync(requestUrl);
-            
-            return response;
+            if (!string.IsNullOrEmpty(TokenCache.CachedToken))
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", TokenCache.CachedToken);
+            }
+
+            var sw = Stopwatch.StartNew();
+            var response = await client.GetAsync("/api/districts");
+            sw.Stop();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var body = JsonSerializer.Deserialize<DistrictsResponse>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return (response, body, sw.ElapsedMilliseconds);
         }
     }
 }
