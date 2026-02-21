@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ToIntegrations.Models
+namespace to_integrations.Models
 {
     public class HotelsResponse
     {
@@ -22,45 +22,84 @@ namespace ToIntegrations.Models
         public string ResponseID { get; set; }
 
         [JsonPropertyName("Data")]
-        public List<HotelItem> Data { get; set; }
+        public List<Hotel> Data { get; set; }
     }
 
-    public class HotelItem
+    public class Hotel
     {
         [JsonPropertyName("hotelid")]
-        public string HotelId { get; set; }
+        public string Hotelid { get; set; }
 
         [JsonPropertyName("hotelname")]
-        public string HotelName { get; set; }
+        public string Hotelname { get; set; }
 
-        [JsonPropertyName("areaid")]
-        public string AreaId { get; set; }
-
-        [JsonPropertyName("areaname")]
-        public string AreaName { get; set; }
+        [JsonPropertyName("pricestatus")]
+        public string Pricestatus { get; set; }
 
         [JsonPropertyName("cityid")]
-        public string CityId { get; set; }
+        public string Cityid { get; set; }
 
         [JsonPropertyName("cityname")]
-        public string CityName { get; set; }
+        public string Cityname { get; set; }
 
         [JsonPropertyName("districtid")]
-        public string DistrictId { get; set; }
+        public string Districtid { get; set; }
 
         [JsonPropertyName("districtname")]
-        public string DistrictName { get; set; }
+        public string Districtname { get; set; }
 
-        [JsonPropertyName("starrating")]
-        public int? StarRating { get; set; }
+        [JsonPropertyName("hasalcohol")]
+        public bool Hasalcohol { get; set; }
 
-        [JsonPropertyName("address")]
-        public string Address { get; set; }
+        [JsonPropertyName("hasfreewifi")]
+        public bool Hasfreewifi { get; set; }
 
-        [JsonPropertyName("latitude")]
-        public string Latitude { get; set; }
+        [JsonPropertyName("hasmall")]
+        public bool Hasmall { get; set; }
 
-        [JsonPropertyName("longitude")]
-        public string Longitude { get; set; }
+        [JsonPropertyName("hasmetro")]
+        public bool Hasmetro { get; set; }
+
+        [JsonPropertyName("haspool")]
+        public bool Haspool { get; set; }
+
+        [JsonPropertyName("hotelclass")]
+        public string Hotelclass { get; set; }
+
+        [JsonPropertyName("hoteltype")]
+        public string Hoteltype { get; set; }
+
+        [JsonPropertyName("popular")]
+        public bool Popular { get; set; }
+
+        [JsonPropertyName("recommended")]
+        public bool Recommended { get; set; }
+
+        [JsonPropertyName("priceupdated")]
+        public string Priceupdated { get; set; }
+
+        [JsonPropertyName("note")]
+        public string Note { get; set; }
+
+        [JsonPropertyName("imageurl")]
+        public string Imageurl { get; set; }
+
+        [JsonPropertyName("areaid")]
+        public string Areaid { get; set; }
+
+        [JsonPropertyName("areaname")]
+        public string Areaname { get; set; }
+
+        [JsonPropertyName("countryid")]
+        public string Countryid { get; set; }
+
+        [JsonPropertyName("countryname")]
+        public string Countryname { get; set; }
+
+        [JsonPropertyName("countrycodeiso2")]
+        public string Countrycodeiso2 { get; set; }
+
+        [JsonPropertyName("countrycodeiso3")]
+        public string Countrycodeiso3 { get; set; }
     }
 }
